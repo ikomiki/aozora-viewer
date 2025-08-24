@@ -12,7 +12,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    target: ['es2015', 'chrome58', 'firefox57', 'safari11', 'edge16'],
+    target: ['es2018', 'chrome64', 'firefox62', 'safari12', 'edge18'],
     rollupOptions: {
       output: {
         manualChunks: {
@@ -29,6 +29,11 @@ export default defineConfig({
     include: ['react', 'react-dom']
   },
   esbuild: {
-    target: 'es2015'
+    target: 'es2018'
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts'
   }
 })

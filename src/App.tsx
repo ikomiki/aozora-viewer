@@ -1,18 +1,18 @@
+import Layout from './components/Layout/Layout'
 import './App.css'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>青空文庫ビューワ</h1>
-        <p>青空文庫形式のテキストファイルを美しく表示します。</p>
-      </header>
-      <main>
-        <div className="dropzone">
-          <p>ここにテキストファイルをドロップしてください</p>
+    <Layout>
+      <div className="app-content">
+        <div className="welcome-section">
+          <h2>ファイルをドロップして開始</h2>
+          <div className="dropzone">
+            <p>ここに青空文庫形式のテキストファイルをドロップしてください</p>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }
 
