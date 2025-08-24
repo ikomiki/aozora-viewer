@@ -1,0 +1,51 @@
+.documentRenderer {
+  max-width: 100%;
+  line-height: 1.8;
+  font-family: var(--font-family, 'Noto Serif JP', serif);
+  color: var(--text-color, #333);
+  padding: 2rem;
+  background-color: var(--bg-color, #ffffff);
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--text-secondary-color, #666);
+  font-size: 1.1rem;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.virtualScroll {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.elementWrapper {
+  margin-bottom: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .documentRenderer {
+    padding: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+}
+
+/* Print styles */
+@media print {
+  .documentRenderer {
+    padding: 0;
+    background-color: white;
+    color: black;
+  }
+}

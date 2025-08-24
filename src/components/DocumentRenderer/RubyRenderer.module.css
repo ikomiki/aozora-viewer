@@ -1,0 +1,50 @@
+.ruby {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.ruby rt {
+  font-size: 0.6em;
+  line-height: 1;
+  font-weight: normal;
+  color: var(--ruby-color, #555);
+  text-align: center;
+  ruby-align: center;
+  ruby-position: over;
+}
+
+.ruby rb {
+  font-weight: inherit;
+}
+
+/* Browser compatibility fallback */
+.ruby:not(:has(rt)) {
+  position: relative;
+}
+
+.ruby:not(:has(rt))::after {
+  content: attr(data-ruby);
+  position: absolute;
+  top: -0.7em;
+  left: 0;
+  right: 0;
+  font-size: 0.6em;
+  line-height: 1;
+  text-align: center;
+  color: var(--ruby-color, #555);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .ruby rt {
+    font-size: 0.55em;
+  }
+}
+
+/* 印刷対応 */
+@media print {
+  .ruby rt {
+    color: #000;
+  }
+}
