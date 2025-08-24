@@ -1,0 +1,23 @@
+# Browsers that we support
+# NFR-301: Chrome、Firefox、Safari、Edgeの最新版で動作
+
+# Production browsers
+> 1%
+last 2 versions
+not dead
+
+# Chrome
+Chrome >= 58
+
+# Firefox  
+Firefox >= 57
+
+# Safari
+Safari >= 11
+
+# Edge
+Edge >= 16
+
+# Mobile browsers
+iOS >= 11
+Android >= 67
