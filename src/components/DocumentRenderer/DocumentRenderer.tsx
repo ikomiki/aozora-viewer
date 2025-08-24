@@ -54,16 +54,23 @@ const DocumentRenderer: React.FC<DocumentRendererProps> = ({
       aria-label="文書コンテンツ"
       tabIndex={0}
     >
-      {document.elements.map((element, index) => (
-        <div key={`${element.type}-${index}`} className={styles.elementWrapper}>
-          <ElementRenderer
-            element={element}
-            onImageLoad={onImageLoad}
-            onImageError={onImageError}
-            onHeadingClick={onHeadingClick}
-          />
-        </div>
-      ))}
+      {document.elements.map((element, index) => {
+        // Use appropriate wrapper element based on element type
+        const isBlockElement = element.type === 'heading' || element.type === 'image' || element.type === 'caption'
+        const WrapperElement = isBlockElement ? 'div' : 'span'
+        const wrapperClass = isBlockElement ? styles.blockWrapper : styles.inlineWrapper
+        
+        return (
+          <WrapperElement key={`${element.type}-${index}`} className={wrapperClass}>
+            <ElementRenderer
+              element={element}
+              onImageLoad={onImageLoad}
+              onImageError={onImageError}
+              onHeadingClick={onHeadingClick}
+            />
+          </WrapperElement>
+        )
+      })}
     </article>
   )
 }

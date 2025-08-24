@@ -28,6 +28,18 @@
   overflow-y: auto;
 }
 
+/* Block elements (headings, images, captions) */
+.blockWrapper {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+/* Inline elements (ruby, text, emphasis) */
+.inlineWrapper {
+  display: inline;
+}
+
+/* Legacy wrapper for backward compatibility */
 .elementWrapper {
   margin-bottom: 1rem;
 }
