@@ -1,0 +1,129 @@
+.dropZone {
+  border: 2px dashed var(--border-color, #ccc);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background-color: var(--bg-color, #fafafa);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.dropZone:hover {
+  border-color: var(--primary-color, #007bff);
+  background-color: var(--bg-hover-color, #f0f8ff);
+}
+
+.dropZone:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 3px var(--focus-color, rgba(0, 123, 255, 0.25));
+}
+
+.dragOver {
+  border-color: var(--primary-color, #007bff);
+  background-color: var(--bg-active-color, #e6f3ff);
+  border-style: solid;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.message {
+  font-size: 1.1rem;
+  color: var(--text-color, #333);
+  margin-bottom: 1rem;
+}
+
+.subMessage {
+  font-size: 0.9rem;
+  color: var(--text-secondary-color, #666);
+  margin-bottom: 1.5rem;
+}
+
+.fileButton {
+  background-color: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.fileButton:hover {
+  background-color: var(--primary-dark-color, #0056b3);
+}
+
+.fileButton:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-color, rgba(0, 123, 255, 0.25));
+}
+
+.hiddenInput {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.loadingMessage {
+  font-size: 1rem;
+  color: var(--text-color, #333);
+  margin-bottom: 1rem;
+}
+
+.progressBar {
+  width: 200px;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--primary-color, #007bff);
+  transition: width 0.3s ease;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .dropZone {
+    padding: 1.5rem;
+    min-height: 150px;
+  }
+  
+  .message {
+    font-size: 1rem;
+  }
+  
+  .fileButton {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
