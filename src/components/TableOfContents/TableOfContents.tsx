@@ -76,16 +76,16 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isMobile) {
       // Add touch handling if needed
-      e.currentTarget.style.touchAction = 'manipulation'
+      ;(e.currentTarget as HTMLElement).style.touchAction = 'manipulation'
     }
   }, [isMobile])
   
   // Render virtual scroll item
-  const renderVirtualItem = useCallback((node: any, index: number) => (
+  const renderVirtualItem = useCallback((node: any) => (
     <TableOfContentsItem
       key={node.heading.id}
       node={node}
-      activeHeadingId={currentActiveId}
+      activeHeadingId={currentActiveId ?? undefined}
       onHeadingClick={onHeadingClick}
     />
   ), [currentActiveId, onHeadingClick])
@@ -139,7 +139,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
             <TableOfContentsItem
               key={node.heading.id}
               node={node}
-              activeHeadingId={currentActiveId}
+              activeHeadingId={currentActiveId ?? undefined}
               onHeadingClick={onHeadingClick}
             />
           ))}

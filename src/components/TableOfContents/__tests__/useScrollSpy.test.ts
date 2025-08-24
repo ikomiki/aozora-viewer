@@ -51,10 +51,14 @@ describe('useScrollSpy', () => {
       callback
     }))
     
-    global.IntersectionObserver = mockIntersectionObserver
+    Object.defineProperty(window, 'IntersectionObserver', {
+      writable: true,
+      configurable: true,
+      value: mockIntersectionObserver
+    })
     
     // Mock DOM elements
-    global.document.getElementById = vi.fn((id) => ({
+    vi.spyOn(document, 'getElementById').mockImplementation((id) => ({
       id,
       getBoundingClientRect: () => ({
         top: 0,
@@ -62,9 +66,12 @@ describe('useScrollSpy', () => {
         left: 0,
         right: 100,
         width: 100,
-        height: 100
-      })
-    }))
+        height: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({})
+      } as DOMRect)
+    } as HTMLElement))
   })
 
   afterEach(() => {
@@ -195,7 +202,7 @@ describe('useScrollSpy', () => {
 
   describe('エラーハンドリング', () => {
     it('should handle missing DOM elements gracefully', () => {
-      global.document.getElementById = vi.fn(() => null)
+      vi.spyOn(document, 'getElementById').mockReturnValue(null)
       
       const { result } = renderHook(() => useScrollSpy({ headings: mockHeadings }))
       

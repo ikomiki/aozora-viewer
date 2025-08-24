@@ -1,7 +1,10 @@
 import '@testing-library/jest-dom';
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: class IntersectionObserver {
   constructor() {}
   
   observe() {
@@ -15,4 +18,4 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect() {
     return null;
   }
-};
+}});
