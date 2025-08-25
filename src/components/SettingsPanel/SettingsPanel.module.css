@@ -1,0 +1,113 @@
+.container {
+  padding: var(--spacing-lg);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--color-bg-secondary);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.resetAllButton {
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.resetAllButton:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-secondary);
+}
+
+.resetAllButton:focus {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+}
+
+.resetAllButton:active {
+  transform: scale(0.98);
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* スクロールバーのスタイリング */
+.container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: var(--color-bg-tertiary);
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+/* Firefox */
+.container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) var(--color-bg-tertiary);
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md);
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .resetAllButton {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-md);
+  }
+  
+  .settings {
+    gap: var(--spacing-lg);
+  }
+}
+
+/* フォーカス管理 */
+.container:focus-within {
+  outline: none;
+}
+
+/* プリントメディア対応 */
+@media print {
+  .container {
+    display: none;
+  }
+}

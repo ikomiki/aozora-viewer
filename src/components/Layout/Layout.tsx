@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react'
 import Sidebar from '../Sidebar/Sidebar'
+import SettingsPanel from '../SettingsPanel/SettingsPanel'
 import { useSidebarState } from '../../hooks/useSidebarState'
 import { SIDEBAR_CONSTANTS } from '../../constants/sidebar'
 import styles from './Layout.module.css'
@@ -80,10 +81,7 @@ const Layout = ({ children }: LayoutProps) => {
         canResize={true}
         ariaLabel="Settings panel"
       >
-        <div className={styles['sidebar-placeholder']}>
-          <h3>設定</h3>
-          <p>ここに設定パネルが表示されます</p>
-        </div>
+        <SettingsPanel />
       </Sidebar>
     </div>
   );

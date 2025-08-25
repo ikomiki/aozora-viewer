@@ -40,6 +40,13 @@
   --z-sidebar: 100;
   --z-modal: 1000;
   --z-tooltip: 1100;
+  
+  /* Document settings (設定パネルで制御) */
+  --document-font-size: 16px;
+  --document-line-height: 1.6;
+  --document-horizontal-margin: 20px;
+  --document-letter-spacing: 0px;
+  --document-paragraph-spacing: 16px;
 }
 
 /* Dark theme */

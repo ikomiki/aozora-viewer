@@ -1,10 +1,12 @@
 .documentRenderer {
   max-width: 100%;
-  line-height: 1.8;
+  font-size: var(--document-font-size, 16px);
+  line-height: var(--document-line-height, 1.6);
   font-family: var(--font-family, 'Noto Serif JP', serif);
   color: var(--text-color, #333);
-  padding: 2rem;
+  padding: 2rem var(--document-horizontal-margin, 20px);
   background-color: var(--bg-color, #ffffff);
+  letter-spacing: var(--document-letter-spacing, 0px);
 }
 
 .emptyState {
@@ -26,6 +28,15 @@
 .virtualScroll {
   height: 100%;
   overflow-y: auto;
+}
+
+/* 段落間隔の設定 */
+.documentRenderer p {
+  margin-bottom: var(--document-paragraph-spacing, 16px);
+}
+
+.documentRenderer p:last-child {
+  margin-bottom: 0;
 }
 
 /* Block elements (headings, images, captions) */
