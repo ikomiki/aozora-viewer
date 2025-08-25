@@ -135,6 +135,9 @@ export interface DocumentMetadata {
   fileSize: number;
   lastModified?: Date;
   encoding: string;
+  encodingConfidence?: number;  // Encoding detection confidence (0-1)
+  hasBom?: boolean;            // Whether file had UTF-8 BOM
+  isValidEncoding?: boolean;   // Whether encoding detection was successful
   parseTime: number;            // Parse processing time (ms)
   elementCount: number;         // Number of elements
   characterCount: number;       // Character count

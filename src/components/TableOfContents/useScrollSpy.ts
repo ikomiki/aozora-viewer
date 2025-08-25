@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { UseScrollSpyOptions, UseScrollSpyResult } from './types'
 
+// Define ScrollIntoViewOptions type for compatibility
+interface ScrollIntoViewOptions {
+  behavior?: 'auto' | 'smooth'
+  block?: 'start' | 'center' | 'end' | 'nearest'
+  inline?: 'start' | 'center' | 'end' | 'nearest'
+}
+
 /**
  * Custom hook for tracking which heading is currently visible
  */

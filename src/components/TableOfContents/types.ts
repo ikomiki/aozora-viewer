@@ -1,3 +1,4 @@
+import React from 'react'
 import type { Heading } from '../../types'
 
 export interface TableOfContentsProps {

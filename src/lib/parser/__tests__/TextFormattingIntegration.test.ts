@@ -216,22 +216,22 @@ describe('Text Formatting Integration Tests', () => {
         preserveLeadingSpaces: true
       })
       
-      const text = `　　全角スペースが先頭にあります
+      const text = `\u3000\u3000全角スペースが先頭にあります
 普通の行
-　もう一つの全角スペース行`
+\u3000もう一つの全角スペース行`
 
       const result = parserWithSpaces.parse(text, 'test.txt')
       
       // 全角スペースが保持されているかチェック
       const firstLine = result.elements[0]
       if (firstLine.type === 'text') {
-        expect(firstLine.content).toContain('　　全角スペース')
+        expect(firstLine.content).toContain('\u3000\u3000全角スペース')
       }
     })
 
     it('should work correctly with formatting instructions', () => {
       const text = `［＃ここから２字下げ］
-　　既存の全角スペース付き行
+\u3000\u3000既存の全角スペース付き行
 ［＃地から１字上げ］字上げと組み合わせ
 ［＃ここで字下げ終わり］`
 

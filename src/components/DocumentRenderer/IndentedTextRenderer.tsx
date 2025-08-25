@@ -1,3 +1,4 @@
+import React from 'react'
 import type { IndentedText } from '../../types'
 import styles from './IndentedTextRenderer.module.css'
 

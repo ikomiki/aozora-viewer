@@ -142,7 +142,7 @@ export class FormattingInstructionParser {
   }
 
   preserveLeadingSpaces(line: string): string {
-    // 行頭の半角スペースを削除し、全角スペース（　）は保持
+    // 行頭の半角スペースを削除し、全角スペース（\u3000）は保持
     return line.replace(/^[ \t]+/, '')
   }
 

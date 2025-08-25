@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react'
 import type { DropZoneProps, DropZoneState } from './types'
 import styles from './DropZone.module.css'
+import { EncodingDetector } from '../../lib/encoding/EncodingDetector'
 
 const DropZone: React.FC<DropZoneProps> = ({
   onFileLoad,
@@ -44,30 +45,45 @@ const DropZone: React.FC<DropZoneProps> = ({
     setState(prev => ({ ...prev, isLoading: true, loadingProgress: 0 }))
     
     try {
-      const reader = new FileReader()
+      // バイナリファイルチェック
+      const arrayBuffer = await file.arrayBuffer()
+      const uint8Array = new Uint8Array(arrayBuffer)
       
-      reader.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const progress = (event.loaded / event.total) * 100
-          setState(prev => ({ ...prev, loadingProgress: progress }))
-        }
-      }
-      
-      reader.onload = () => {
-        const content = reader.result as string
-        setState(prev => ({ ...prev, isLoading: false, loadingProgress: 100 }))
-        onFileLoad(content, file.name)
-      }
-      
-      reader.onerror = () => {
+      if (EncodingDetector.isBinaryFile(uint8Array)) {
         setState(prev => ({ ...prev, isLoading: false, loadingProgress: 0 }))
-        onError('ファイルの読み込みに失敗しました。')
+        onError('バイナリファイルは読み込めません。テキストファイルを選択してください。')
+        return
+      }
+
+      setState(prev => ({ ...prev, loadingProgress: 50 }))
+      
+      // エンコード自動検出
+      const detectionResult = await EncodingDetector.detectAndDecode(file)
+      
+      setState(prev => ({ ...prev, loadingProgress: 90 }))
+      
+      // 検出結果に応じた処理
+      if (!detectionResult.isValid) {
+        // 文字化けの警告を出しながらも表示は行う
+        const warningMessage = `文字エンコードの検出に失敗しました。${detectionResult.encoding}として読み込みましたが、文字化けしている可能性があります。`
+        console.warn(warningMessage)
+        // 警告はコンソールにのみ出力し、ファイルは読み込む
       }
       
-      reader.readAsText(file, 'UTF-8')
-    } catch {
+      setState(prev => ({ ...prev, isLoading: false, loadingProgress: 100 }))
+      
+      // メタデータと一緒にコンテンツを渡す
+      onFileLoad(detectionResult.text, file.name, {
+        encoding: detectionResult.encoding,
+        confidence: detectionResult.confidence,
+        hasBom: detectionResult.hasBom,
+        isValidEncoding: detectionResult.isValid
+      })
+      
+    } catch (error) {
       setState(prev => ({ ...prev, isLoading: false, loadingProgress: 0 }))
       onError('ファイルの読み込みに失敗しました。')
+      console.error('File processing error:', error)
     }
   }, [validateFile, onFileLoad, onError])
 
@@ -119,6 +135,12 @@ const DropZone: React.FC<DropZoneProps> = ({
     }
   }, [disabled, state.isLoading])
 
+  // ボタン専用のクリックハンドラー（イベント伝播を停止）
+  const handleButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    triggerFileSelect()
+  }, [triggerFileSelect])
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -161,7 +183,7 @@ const DropZone: React.FC<DropZoneProps> = ({
       <button
         type="button"
         className={styles.fileButton}
-        onClick={triggerFileSelect}
+        onClick={handleButtonClick}
         disabled={disabled || state.isLoading}
       >
         📁 ファイルを選択

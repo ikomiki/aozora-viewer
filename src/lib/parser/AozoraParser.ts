@@ -39,7 +39,12 @@ export default class AozoraParser {
     this.blockProcessor = new IndentBlockProcessor()
   }
 
-  parse(text: string, filename: string): ParsedDocument {
+  parse(text: string, filename: string, encodingInfo?: {
+    encoding: string
+    confidence?: number
+    hasBom?: boolean
+    isValidEncoding?: boolean
+  }): ParsedDocument {
     const startTime = performance.now()
     
     if (text.length > this.config.maxFileSize) {
@@ -51,7 +56,7 @@ export default class AozoraParser {
     const images: Image[] = []
     
     if (text.length === 0) {
-      return this.createDocument(elements, headings, images, filename, startTime, text)
+      return this.createDocument(elements, headings, images, filename, startTime, text, encodingInfo)
     }
 
     try {
@@ -67,11 +72,11 @@ export default class AozoraParser {
         }
       }
 
-      return this.createDocument(elements, headings, images, filename, startTime, text)
+      return this.createDocument(elements, headings, images, filename, startTime, text, encodingInfo)
     } catch (error) {
       // Partial parsing on error - return what we have
       console.warn('Parser error, attempting partial parse:', error)
-      return this.createDocument(elements, headings, images, filename, startTime, text)
+      return this.createDocument(elements, headings, images, filename, startTime, text, encodingInfo)
     }
   }
 
@@ -461,7 +466,13 @@ export default class AozoraParser {
     images: Image[], 
     filename: string, 
     startTime: number,
-    originalText: string
+    originalText: string,
+    encodingInfo?: {
+      encoding: string
+      confidence?: number
+      hasBom?: boolean
+      isValidEncoding?: boolean
+    }
   ): ParsedDocument {
     const endTime = performance.now()
     
@@ -476,7 +487,10 @@ export default class AozoraParser {
       metadata: {
         filename,
         fileSize: originalText.length,
-        encoding: 'UTF-8',
+        encoding: encodingInfo?.encoding || 'UTF-8',
+        encodingConfidence: encodingInfo?.confidence,
+        hasBom: encodingInfo?.hasBom,
+        isValidEncoding: encodingInfo?.isValidEncoding,
         parseTime: endTime - startTime,
         elementCount: elements.length,
         characterCount: originalText.length

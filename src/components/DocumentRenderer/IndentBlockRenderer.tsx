@@ -1,3 +1,4 @@
+import React from 'react'
 import type { IndentBlock } from '../../types'
 import { ElementRenderer } from './ElementRenderer'
 import styles from './IndentBlockRenderer.module.css'
