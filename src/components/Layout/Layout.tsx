@@ -1,5 +1,7 @@
-import { useState, ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import Sidebar from '../Sidebar/Sidebar'
+import { useSidebarState } from '../../hooks/useSidebarState'
+import { SIDEBAR_CONSTANTS } from '../../constants/sidebar'
 import styles from './Layout.module.css'
 
 interface LayoutProps {
@@ -7,20 +9,44 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const { sidebarState, toggleSidebar, setSidebarWidth } = useSidebarState();
+  const [isDesktop, setIsDesktop] = useState(true);
 
-  const mainContentClass = `${styles['main-content']} ${
-    leftSidebarOpen ? styles['main-left-open'] : ''
-  } ${rightSidebarOpen ? styles['main-right-open'] : ''}`;
+  // レスポンシブ状態を監視
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsDesktop(window.innerWidth > 768);
+    };
+
+    checkScreenSize(); // 初回実行
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
+
+  // 動的にマージンを計算（デスクトップのみ）
+  const leftMargin = isDesktop ? 
+    (sidebarState.left.isOpen ? sidebarState.left.width : SIDEBAR_CONSTANTS.COLLAPSED_WIDTH) : 0;
+  const rightMargin = isDesktop ? 
+    (sidebarState.right.isOpen ? sidebarState.right.width : SIDEBAR_CONSTANTS.COLLAPSED_WIDTH) : 0;
+
+  const mainContentStyle = {
+    marginLeft: `${leftMargin}px`,
+    marginRight: `${rightMargin}px`
+  };
 
   return (
     <div className={styles.layout}>
       {/* Left Sidebar - Table of Contents */}
       <Sidebar
         side="left"
-        isOpen={leftSidebarOpen}
-        onToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
+        isOpen={sidebarState.left.isOpen}
+        onToggle={() => toggleSidebar('left')}
+        width={sidebarState.left.width}
+        onWidthChange={(width) => setSidebarWidth('left', width)}
+        canResize={true}
         ariaLabel="Table of contents"
       >
         <div className={styles['sidebar-placeholder']}>
@@ -31,7 +57,8 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Main Content */}
       <main 
-        className={mainContentClass}
+        className={styles['main-content']}
+        style={mainContentStyle}
         role="main"
         aria-label="Main content"
       >
@@ -46,8 +73,11 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Right Sidebar - Settings */}
       <Sidebar
         side="right"
-        isOpen={rightSidebarOpen}
-        onToggle={() => setRightSidebarOpen(!rightSidebarOpen)}
+        isOpen={sidebarState.right.isOpen}
+        onToggle={() => toggleSidebar('right')}
+        width={sidebarState.right.width}
+        onWidthChange={(width) => setSidebarWidth('right', width)}
+        canResize={true}
         ariaLabel="Settings panel"
       >
         <div className={styles['sidebar-placeholder']}>

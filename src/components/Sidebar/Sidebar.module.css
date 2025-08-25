@@ -3,10 +3,10 @@
   position: fixed;
   top: 0;
   height: 100vh;
-  width: var(--sidebar-width);
+  /* width は JavaScript で動的に設定される */
   background-color: var(--color-bg-secondary);
   border: var(--border-width) solid var(--color-border);
-  transition: transform var(--transition-medium);
+  transition: width var(--transition-medium);
   z-index: var(--z-sidebar);
   display: flex;
   flex-direction: column;
@@ -23,20 +23,12 @@
 }
 
 /* Closed state */
-.sidebar-closed {
-  width: var(--sidebar-width-collapsed);
-}
-
 .sidebar-closed .sidebar-content {
   opacity: 0;
   visibility: hidden;
 }
 
 /* Open state */
-.sidebar-open {
-  width: var(--sidebar-width);
-}
-
 .sidebar-open .sidebar-content {
   opacity: 1;
   visibility: visible;
@@ -77,6 +69,29 @@
 .sidebar-toggle:focus {
   outline: 2px solid var(--color-text-primary);
   outline-offset: 2px;
+}
+
+/* Resize handle */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: transparent;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.sidebar-left .resize-handle {
+  right: 0;
+}
+
+.sidebar-right .resize-handle {
+  left: 0;
+}
+
+.resize-handle:hover {
+  background-color: var(--color-border);
 }
 
 /* Sidebar content */

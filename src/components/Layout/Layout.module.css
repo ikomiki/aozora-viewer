@@ -11,20 +11,10 @@
 .main-content {
   flex: 1;
   padding: var(--spacing-lg);
-  margin-left: var(--sidebar-width-collapsed);
-  margin-right: var(--sidebar-width-collapsed);
+  /* margin は JavaScript で動的に設定される */
   transition: margin var(--transition-medium);
   min-height: 100vh;
   overflow-y: auto;
-}
-
-/* Main content adjustments when sidebars are open */
-.main-left-open {
-  margin-left: var(--sidebar-width);
-}
-
-.main-right-open {
-  margin-right: var(--sidebar-width);
 }
 
 /* Placeholder content styling */
