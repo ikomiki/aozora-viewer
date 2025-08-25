@@ -1,0 +1,4 @@
+.left-indented-text {
+  display: inline-block;
+  /* 左インデント：行頭からの字上げ */
+}

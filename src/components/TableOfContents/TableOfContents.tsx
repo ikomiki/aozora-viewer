@@ -76,7 +76,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (isMobile) {
       // Add touch handling if needed
-      ;(e.currentTarget as HTMLElement).style.touchAction = 'manipulation'
+      (e.currentTarget as HTMLElement).style.touchAction = 'manipulation'
     }
   }, [isMobile])
   

@@ -6,12 +6,18 @@ import type {
   Image, 
   Caption, 
   PlainText,
+  LeftIndentedText,
+  RightIndentedText,
   Range,
   ParserConfig 
 } from '../../types'
+import { FormattingInstructionParser } from './FormattingInstructionParser'
+import { IndentBlockProcessor } from './IndentBlockProcessor'
 
 export default class AozoraParser {
   private config: ParserConfig
+  private formattingParser: FormattingInstructionParser
+  private blockProcessor: IndentBlockProcessor
 
   constructor(config?: Partial<ParserConfig>) {
     this.config = {
@@ -20,10 +26,17 @@ export default class AozoraParser {
       enableImages: true,
       enableCaptions: true,
       enableEmphasis: true,
+      enableTextFormatting: true,
+      preserveLeadingSpaces: true,
+      maxIndentCount: 20,
       strictMode: false,
       maxFileSize: 10 * 1024 * 1024, // 10MB
       ...config
     }
+    
+    // Initialize processors
+    this.formattingParser = new FormattingInstructionParser(this.config.maxIndentCount)
+    this.blockProcessor = new IndentBlockProcessor()
   }
 
   parse(text: string, filename: string): ParsedDocument {
@@ -70,12 +83,17 @@ export default class AozoraParser {
     let lineStart = 0
     
     for (const line of lines) {
-      if (line.trim().length === 0) {
+      // Preserve leading fullwidth spaces if enabled
+      const processedLine = this.config.preserveLeadingSpaces ? 
+        this.formattingParser.preserveLeadingSpaces(line) : 
+        line.trim()
+      
+      if (processedLine.length === 0) {
         // Add empty line as text element
         elements.push({
           type: 'text',
-          content: line + '\n',
-          range: this.createRange(lineStart, lineStart + line.length + 1)
+          content: '\n',
+          range: this.createRange(lineStart, lineStart + 1)
         })
         lineStart += line.length + 1
         continue
@@ -83,27 +101,51 @@ export default class AozoraParser {
       
       let currentIndex = 0
       
-      while (currentIndex < line.length) {
-        const remaining = line.slice(currentIndex)
+      while (currentIndex < processedLine.length) {
+        const remaining = processedLine.slice(currentIndex)
         let matched = false
         
-        // Skip whitespace at the beginning of remaining text
-        const trimmedRemaining = remaining.trimStart()
-        const whitespaceLength = remaining.length - trimmedRemaining.length
-        
-        // If we have whitespace, add it as text element first
-        if (whitespaceLength > 0) {
-          elements.push({
-            type: 'text',
-            content: remaining.slice(0, whitespaceLength),
-            range: this.createRange(lineStart + currentIndex, lineStart + currentIndex + whitespaceLength)
-          })
-          currentIndex += whitespaceLength
-          continue
+        // Try to parse formatting instructions first if enabled
+        if (this.config.enableTextFormatting) {
+          // Try left indent instruction (［＃２字上げ］)
+          const leftIndentMatch = this.formattingParser.parseLeftIndent(remaining, lineStart + currentIndex)
+          if (leftIndentMatch) {
+            elements.push(leftIndentMatch.element)
+            currentIndex += leftIndentMatch.length
+            matched = true
+            continue
+          }
+          
+          // Try right indent instruction (［＃地から２字上げ］)
+          const rightIndentMatch = this.formattingParser.parseRightIndent(remaining, lineStart + currentIndex)
+          if (rightIndentMatch) {
+            elements.push(rightIndentMatch.element)
+            currentIndex += rightIndentMatch.length
+            matched = true
+            continue
+          }
+          
+          // Try block indent start
+          const blockStartMatch = this.formattingParser.parseBlockIndentStart(remaining, lineStart + currentIndex)
+          if (blockStartMatch) {
+            elements.push(blockStartMatch.element)
+            currentIndex += blockStartMatch.length
+            matched = true
+            continue
+          }
+          
+          // Try block indent end
+          const blockEndMatch = this.formattingParser.parseBlockIndentEnd(remaining, lineStart + currentIndex)
+          if (blockEndMatch) {
+            elements.push(blockEndMatch.element)
+            currentIndex += blockEndMatch.length
+            matched = true
+            continue
+          }
         }
         
-        // Try to parse different notations in priority order on trimmed text
-        const rubyMatch = this.parseRuby(trimmedRemaining, lineStart + currentIndex)
+        // Try to parse different notations in priority order
+        const rubyMatch = this.parseRuby(remaining, lineStart + currentIndex)
         if (rubyMatch) {
           elements.push(rubyMatch.element)
           currentIndex += rubyMatch.length
@@ -111,7 +153,7 @@ export default class AozoraParser {
           continue
         }
 
-        const headingMatch = this.parseHeading(trimmedRemaining, lineStart + currentIndex)
+        const headingMatch = this.parseHeading(remaining, lineStart + currentIndex)
         if (headingMatch) {
           elements.push(headingMatch.element)
           currentIndex += headingMatch.length
@@ -119,7 +161,7 @@ export default class AozoraParser {
           continue
         }
 
-        const imageMatch = this.parseImage(trimmedRemaining, lineStart + currentIndex)
+        const imageMatch = this.parseImage(remaining, lineStart + currentIndex)
         if (imageMatch) {
           elements.push(imageMatch.element)
           currentIndex += imageMatch.length
@@ -127,7 +169,7 @@ export default class AozoraParser {
           continue
         }
 
-        const captionMatch = this.parseCaption(trimmedRemaining, lineStart + currentIndex)
+        const captionMatch = this.parseCaption(remaining, lineStart + currentIndex)
         if (captionMatch) {
           elements.push(captionMatch.element)
           currentIndex += captionMatch.length
@@ -137,7 +179,7 @@ export default class AozoraParser {
 
         // If no special notation found, parse as plain text until next special character
         if (!matched) {
-          const plainTextMatch = this.parsePlainText(trimmedRemaining, lineStart + currentIndex)
+          const plainTextMatch = this.parsePlainText(remaining, lineStart + currentIndex)
           if (plainTextMatch) {
             // Add all text elements, even empty ones temporarily - we'll clean up later
             elements.push(plainTextMatch.element)
@@ -159,8 +201,65 @@ export default class AozoraParser {
       lineStart += line.length + 1
     }
 
+    // Process indent blocks if text formatting is enabled
+    let processedElements = elements
+    if (this.config.enableTextFormatting) {
+      // First process indent blocks (this also removes formatting instructions)
+      processedElements = this.blockProcessor.processIndentBlocks(elements)
+      
+      // Handle left and right indent instructions separately
+      processedElements = this.processIndentInstructions(processedElements)
+    }
+
     // Filter out consecutive empty text elements and merge adjacent text elements
-    return this.cleanupElements(elements)
+    return this.cleanupElements(processedElements)
+  }
+
+  private processIndentInstructions(elements: AozoraElement[]): AozoraElement[] {
+    const result: AozoraElement[] = []
+    
+    for (let i = 0; i < elements.length; i++) {
+      const element = elements[i]
+      
+      if (element.type === 'formatting-instruction' && 
+          (element.instructionType === 'left-indent' || element.instructionType === 'right-indent')) {
+        // インデント指示の場合、次の要素と結合する
+        const nextElement = elements[i + 1]
+        if (nextElement && nextElement.type === 'text') {
+          if (element.instructionType === 'left-indent') {
+            // 左インデント
+            const leftIndentedText: LeftIndentedText = {
+              type: 'left-indented-text',
+              content: nextElement.content,
+              indentCount: element.indentCount || 0,
+              range: {
+                start: element.range.start,
+                end: nextElement.range.end
+              }
+            }
+            result.push(leftIndentedText)
+          } else {
+            // 右寄せ
+            const rightIndentedText: RightIndentedText = {
+              type: 'right-indented-text',
+              content: nextElement.content,
+              indentCount: element.indentCount || 0,
+              range: {
+                start: element.range.start,
+                end: nextElement.range.end
+              }
+            }
+            result.push(rightIndentedText)
+          }
+          i++ // 次の要素もスキップ
+        }
+        // 次の要素がない、またはテキストでない場合は指示を無視
+      } else {
+        result.push(element)
+      }
+    }
+    
+    return result
   }
 
   private parseRuby(text: string, startIndex: number): { element: RubyText; length: number } | null {

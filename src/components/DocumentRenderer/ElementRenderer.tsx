@@ -5,6 +5,10 @@ import HeadingRenderer from './HeadingRenderer'
 import ImageRenderer from './ImageRenderer'
 import CaptionRenderer from './CaptionRenderer'
 import PlainTextRenderer from './PlainTextRenderer'
+import { IndentedTextRenderer } from './IndentedTextRenderer'
+import { LeftIndentedTextRenderer } from './LeftIndentedTextRenderer'
+import { RightIndentedTextRenderer } from './RightIndentedTextRenderer'
+import { IndentBlockRenderer } from './IndentBlockRenderer'
 
 const ElementRenderer: React.FC<ElementRendererProps> = ({
   element,
@@ -43,6 +47,18 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
     case 'text':
       return <PlainTextRenderer element={element} className={className} />
     
+    case 'indented-text':
+      return <IndentedTextRenderer element={element} />
+    
+    case 'left-indented-text':
+      return <LeftIndentedTextRenderer element={element} />
+    
+    case 'right-indented-text':
+      return <RightIndentedTextRenderer element={element} />
+    
+    case 'indent-block':
+      return <IndentBlockRenderer element={element} />
+    
     default:
       // Handle unknown element types
       console.warn('Unknown element type:', (element as any).type)
@@ -51,3 +67,4 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
 }
 
 export default ElementRenderer
+export { ElementRenderer }

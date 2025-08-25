@@ -1,0 +1,8 @@
+.indented-text {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.negative-indent {
+  display: inline-block;
+}

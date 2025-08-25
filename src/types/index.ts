@@ -67,6 +67,44 @@ export interface Correction {
   range: Range;
 }
 
+// Text formatting elements
+export interface IndentedText {
+  type: 'indented-text';
+  content: string;
+  indentCount: number;  // Positive for indent (字下げ), negative for outdent (字上げ)
+  range: Range;
+}
+
+export interface LeftIndentedText {
+  type: 'left-indented-text';
+  content: string;
+  indentCount: number;  // Number of fullwidth spaces from line start
+  range: Range;
+}
+
+export interface RightIndentedText {
+  type: 'right-indented-text';
+  content: string;
+  indentCount: number;  // Number of fullwidth spaces from line end
+  range: Range;
+}
+
+export interface IndentBlock {
+  type: 'indent-block';
+  indentCount: number;  // Number of fullwidth spaces to indent
+  elements: Exclude<AozoraElement, FormattingInstruction>[];  // Elements within the block (excluding instructions)
+  range: Range;
+}
+
+// Internal formatting instruction (removed from final output)
+export interface FormattingInstruction {
+  type: 'formatting-instruction';
+  instruction: string;  // Original instruction text
+  instructionType: 'indent-start' | 'indent-end' | 'line-indent' | 'left-indent' | 'right-indent';
+  indentCount?: number; // Number of characters to indent (undefined for indent-end)
+  range: Range;
+}
+
 // Union type for all elements
 export type AozoraElement = 
   | RubyText 
@@ -75,7 +113,12 @@ export type AozoraElement =
   | Caption 
   | PlainText 
   | Emphasis 
-  | Correction;
+  | Correction
+  | IndentedText
+  | LeftIndentedText
+  | RightIndentedText
+  | IndentBlock
+  | FormattingInstruction;
 
 // Document structure
 export interface ParsedDocument {
@@ -104,6 +147,9 @@ export interface ParserConfig {
   enableImages: boolean;
   enableCaptions: boolean;
   enableEmphasis: boolean;
+  enableTextFormatting: boolean; // Enable text formatting (indent/outdent)
+  preserveLeadingSpaces: boolean; // Preserve leading fullwidth spaces
+  maxIndentCount: number;        // Maximum allowed indent count (safety limit)
   strictMode: boolean;          // Strict parsing mode
   maxFileSize: number;          // Maximum file size in bytes
 }

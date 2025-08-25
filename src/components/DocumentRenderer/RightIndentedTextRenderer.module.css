@@ -1,0 +1,5 @@
+.right-indented-text {
+  /* 右寄せ：行末からの字上げ */
+  text-align: right;
+  display: block;
+}
