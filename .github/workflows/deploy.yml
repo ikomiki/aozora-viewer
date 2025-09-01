@@ -29,6 +29,8 @@ jobs:
 
       - name: Build application
         run: npm run build
+        env:
+          NODE_ENV: production
 
       # GitHub Pages deployment
       - name: Deploy to GitHub Pages
@@ -37,6 +39,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          external_repository: ikomiki/ikomiki.github.io
+          destination_dir: aozora-viewer
           # force_orphan: true
 
     # # Netlify deployment (alternative)
