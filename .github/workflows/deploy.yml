@@ -37,9 +37,10 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         if: github.event_name == 'push'
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           publish_dir: ./dist
           external_repository: ikomiki/ikomiki.github.io
+          publish_branch: gh-pages
           destination_dir: aozora-viewer
           # force_orphan: true
 
