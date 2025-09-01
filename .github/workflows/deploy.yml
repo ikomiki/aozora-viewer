@@ -8,6 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
       - name: Checkout code
@@ -32,6 +37,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          # force_orphan: true
 
     # # Netlify deployment (alternative)
     # - name: Deploy to Netlify
