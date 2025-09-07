@@ -267,42 +267,64 @@ export default class AozoraParser {
     return result
   }
 
+  /**
+   * Parses Aozora Bunko ruby notation and generates ruby elements.
+   * Supports both explicit range markers (｜text《ruby》) and implicit single-character ruby (text《ruby》).
+   */
   private parseRuby(text: string, startIndex: number): { element: RubyText; length: number } | null {
     if (!this.config.enableRuby) return null
 
-    // Pattern: ｜text《ruby》 or text《ruby》
-    const rangePattern = /^｜([^《]+)《([^》]+)》/
-    const basicPattern = /^([^｜［《\s]+)《([^》]+)》/
+    // Try explicit range marker first
+    const explicitRuby = this.parseExplicitRangeRuby(text, startIndex)
+    if (explicitRuby) return explicitRuby
 
-    const rangeMatch = text.match(rangePattern)
-    if (rangeMatch) {
-      const [fullMatch, baseText, ruby] = rangeMatch
-      return {
-        element: {
-          type: 'ruby',
-          text: baseText,
-          ruby: ruby,
-          range: this.createRange(startIndex, startIndex + fullMatch.length)
-        },
-        length: fullMatch.length
-      }
+    // Try basic ruby pattern
+    return this.parseBasicRuby(text, startIndex)
+  }
+
+  /**
+   * Parses explicit range ruby notation: ｜text《ruby》
+   */
+  private parseExplicitRangeRuby(text: string, startIndex: number): { element: RubyText; length: number } | null {
+    const pattern = /^｜([^《]+)《([^》]+)》/
+    const match = text.match(pattern)
+    
+    if (!match) return null
+
+    const [fullMatch, baseText, ruby] = match
+    return this.createRubyResult(baseText, ruby, startIndex, fullMatch.length)
+  }
+
+  /**
+   * Parses basic ruby notation: text《ruby》
+   * For single character ruby, matches exactly one character before the ruby.
+   */
+  private parseBasicRuby(text: string, startIndex: number): { element: RubyText; length: number } | null {
+    // Pattern for single character ruby: single char + 《ruby》
+    const singleCharPattern = /^([^｜［《\s])《([^》]+)》/
+    const singleMatch = text.match(singleCharPattern)
+    
+    if (singleMatch) {
+      const [fullMatch, baseText, ruby] = singleMatch
+      return this.createRubyResult(baseText, ruby, startIndex, fullMatch.length)
     }
-
-    const basicMatch = text.match(basicPattern)
-    if (basicMatch) {
-      const [fullMatch, baseText, ruby] = basicMatch
-      return {
-        element: {
-          type: 'ruby',
-          text: baseText,
-          ruby: ruby,
-          range: this.createRange(startIndex, startIndex + fullMatch.length)
-        },
-        length: fullMatch.length
-      }
-    }
-
+    
     return null
+  }
+
+  /**
+   * Creates a ruby result object with proper typing and range information.
+   */
+  private createRubyResult(baseText: string, ruby: string, startIndex: number, length: number): { element: RubyText; length: number } {
+    return {
+      element: {
+        type: 'ruby' as const,
+        text: baseText,
+        ruby: ruby,
+        range: this.createRange(startIndex, startIndex + length)
+      },
+      length
+    }
   }
 
   private parseHeading(text: string, startIndex: number): { element: Heading; length: number } | null {
@@ -394,17 +416,52 @@ export default class AozoraParser {
     return null
   }
 
+  /**
+   * 【機能概要】: プレーンテキストを解析し、ルビ仕様に対応した適切な粒度で分割
+   * 【実装方針】: 
+   *   - 基本ルビパターン（1文字《ルビ》）では直前文字のみが基底文字となる
+   *   - 複数文字テキストでルビが続く場合、最後の文字を基底文字として分離
+   * 【ルビ対応】: ルビ直前文字の分離と通常テキストの適切な処理を両立
+   */
   private parsePlainText(text: string, startIndex: number): { element: PlainText; length: number } | null {
-    // Find the next special character or pattern
+    // 【特殊文字検出】: 次の特殊文字またはルビパターンを検索 🟢
     const specialChars = /[｜［《》]/
-    const match = text.search(specialChars)
+    let endIndex = text.search(specialChars)
     
-    const endIndex = match === -1 ? text.length : Math.max(match, 1)
+    // 【ルビパターン検出時の処理】: 《が見つかった場合の適切な分割処理 🟡
+    if (endIndex > 0 && text[endIndex] === '《') {
+      // 【基本ルビ仕様対応】: 一文字前ルビでは直前文字のみが基底文字
+      // 複数文字がある場合、直前文字以外を先に処理
+      if (endIndex > 1) {
+        // 【複数文字分離戦略】: 
+        // 例: "と雑《ざっし》" → "と"を先に処理、次に"雑《ざっし》"でルビ解析
+        // 例: "である《特殊ルビ》" の場合も → "であ"を先に処理、次に"る《特殊ルビ》"
+        // しかし実際の青空文庫では "である" にルビが付くことは稀なので、
+        // "雑誌《ざっし》" のような合成語の場合のみ分離が必要
+        
+        // 【精密制御】: ルビ直前の1文字を基底文字として残し、その前を処理
+        endIndex = endIndex - 1
+      } else {
+        // 【一文字の場合】: ルビ処理に委ねる
+        return null
+      }
+    }
+    
+    // 【終了位置調整】: 適切な終了位置を設定 🟢
+    if (endIndex === -1) {
+      // 【特殊文字なし】: 全テキストを一つの要素として処理
+      // ルビに隣接しない純粋なテキストは結合して効率化
+      endIndex = text.length
+    } else {
+      endIndex = Math.max(endIndex, 1)
+    }
+    
+    // 【空要素チェック】: 空の要素は作成しない 🟢
     if (endIndex === 0) return null
 
     const content = text.slice(0, endIndex)
     
-    // Always return content, even if it's just whitespace
+    // 【結果生成】: テキスト要素を生成して返却 🟢
     return {
       element: {
         type: 'text',
@@ -444,13 +501,26 @@ export default class AozoraParser {
         continue
       }
       
-      // Merge adjacent text elements
+      // 【ルビテキスト分離対応】: 隣接するテキスト要素のマージを制限
+      // ルビ要素間での細かいテキスト分離を保持するため、マージを抑制
+      // Merge adjacent text elements only if both are newlines or both are multi-character
       if (element.type === 'text' && cleaned.length > 0) {
         const lastElement = cleaned[cleaned.length - 1]
         if (lastElement.type === 'text') {
-          lastElement.content += element.content
-          lastElement.range.end = element.range.end
-          continue
+          // 【改行マージ】: 改行文字同士のみマージを許可
+          if (lastElement.content === '\n' && element.content === '\n') {
+            lastElement.content += element.content
+            lastElement.range.end = element.range.end
+            continue
+          }
+          // 【長いテキスト同士のマージ】: 両方とも2文字以上の場合のみマージ
+          // 1文字テキストは個別に保持して、ルビ間分離を維持
+          if (lastElement.content.length > 1 && element.content.length > 1 && 
+              !lastElement.content.includes('\n') && !element.content.includes('\n')) {
+            lastElement.content += element.content
+            lastElement.range.end = element.range.end
+            continue
+          }
         }
       }
       
